@@ -41,17 +41,8 @@ FilmDataHub là một dự án thu thập dữ liệu từ trang web CGV, tập 
    ```bash
    pip install -r requirements.txt
    ```
-2. **Thiết lập Selenium WebDriver**
-   - Tải và cài đặt Selenium WebDriver tương ứng với trình duyệt của bạn.
-   - Đảm bảo đường dẫn đến WebDriver được thêm vào hệ thống.
-3. **Chạy dự án**
-   - Chạy bằng Jupyter Notebook:
-     ```bash
-     jupyter notebook main.ipynb
-     ```
-   - Hoặc chạy bằng Python:
+2. **Chạy dự án**
      ```bash
      python main.py
      ```
-
 
