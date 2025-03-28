@@ -43,6 +43,6 @@ FilmDataHub là một dự án thu thập dữ liệu từ trang web CGV, tập 
    ```
 2. **Chạy dự án**
      ```bash
-     python main.py
+     python main.ipynb
      ```
 

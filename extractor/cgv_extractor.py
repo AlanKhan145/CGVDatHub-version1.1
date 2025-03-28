@@ -10,36 +10,22 @@ class CgvExtractor(Extractor):
     Lớp con kế thừa từ Extractor để trích xuất thông tin phim.
     """
 
-    def extract_list_film(self) -> List[Dict[str, Any]]:
+    def extract_list_films_url(self) -> List[str]:
         """
-        Trích xuất danh sách phim từ trang web.
-
-        Args:
-            col: Đối tượng collection trong database để lưu thông tin phim.
+        Trích xuất danh sách URL của các bộ phim.
 
         Returns:
-            List[Dict[str, Any]]: Danh sách thông tin các bộ phim.
+            List[str]: Danh sách URL của các bộ phim.
         """
-        film_list = []
         try:
             film_links = [
                 film.get_attribute("href")
                 for film in self.driver.find_elements(By.CSS_SELECTOR, "a.product-image")
             ]
-
-            for link_url in film_links:
-                try:
-                    self.load_page(link_url)
-                    film_info = self.extract_info()
-                    if film_info:
-                        film_info["link"] = link_url
-                        film_list.append(film_info)
-                except WebDriverException as e:
-                    logging.error(f"Lỗi Selenium khi xử lý phim {link_url}: {e}")
+            return film_links
         except WebDriverException as e:
             logging.error(f"Lỗi khi tải trang: {e}")
-
-        return film_list
+            return []
 
     def extract_info(self) -> Dict[str, Any]:
         """
@@ -68,12 +54,11 @@ class CgvExtractor(Extractor):
             film_info["rated"] = self.get_value_by_label("Rated")
 
             # Lấy thông tin diễn viên
-            actors_text = (
+            film_info["actors"] = (
                 self.get_value_by_label("Diễn viên")
                 or self.get_value_by_label("Diễn viên chính")
                 or "Không có thông tin"
             )
-            film_info["actors"] = actors_text
 
             # Lấy mô tả phim
             try:

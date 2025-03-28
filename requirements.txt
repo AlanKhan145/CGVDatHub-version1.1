@@ -5,4 +5,5 @@ jupyter
 selenium
 pandas
 pymongo
-
+sqlalchemy
+psycopg2

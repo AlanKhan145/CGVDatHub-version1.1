@@ -23,39 +23,6 @@ class MotchillExtractor(Extractor):
         except NoSuchElementException:
             return "Không có thông tin"
 
-    def extract_list_film(self) -> List[Dict[str, Any]]:
-        """
-        Trích xuất danh sách phim từ tất cả các trang.
-
-        Returns:
-            List[Dict[str, Any]]: Danh sách thông tin các bộ phim.
-        """
-        film_list = []
-        page_links = self.get_all_page_links()
-
-        for page_url in page_links:
-            try:
-                self.load_page(page_url)
-                film_links = [
-                    film.find_element(By.CSS_SELECTOR, "a").get_attribute("href")
-                    for film in self.driver.find_elements(By.CSS_SELECTOR, "li.item.no-margin-left1")
-                ]
-
-                for link_url in film_links:
-                    try:
-                        self.load_page(link_url)
-                        film_info = self.extract_info()
-                        if film_info:
-                            film_info["link"] = link_url
-                            film_list.append(film_info)
-                    except WebDriverException as e:
-                        logging.error("Lỗi Selenium khi xử lý phim %s: %s", link_url, e)
-
-            except WebDriverException as e:
-                logging.error("Lỗi khi tải trang %s: %s", page_url, e)
-
-        return film_list
-
     def extract_info(self) -> Dict[str, Any]:
         """
         Trích xuất thông tin chi tiết của một bộ phim từ trang web.
@@ -76,15 +43,15 @@ class MotchillExtractor(Extractor):
             film_info["release_year"] = self.get_value_by_label("Năm sản xuất")
             film_info["country"] = self.get_value_by_label("Quốc gia")
 
-            film_info["genre"] = ", ".join([
+            film_info["genre"] = ", ".join(
                 genre.text.strip()
                 for genre in self.driver.find_elements(By.XPATH, "//dt[contains(text(), 'Thể loại')]/following-sibling::dd/a")
-            ]) or "Không có thông tin"
+            ) or "Không có thông tin"
 
-            film_info["actors"] = ", ".join([
+            film_info["actors"] = ", ".join(
                 actor.text.strip()
                 for actor in self.driver.find_elements(By.XPATH, "//dt[contains(text(), 'Diễn viên')]/following-sibling::dd/a")
-            ]) or "Không có thông tin"
+            ) or "Không có thông tin"
 
             try:
                 description_element = self.driver.find_element(By.CSS_SELECTOR, "meta[name='description']")
@@ -107,9 +74,6 @@ class MotchillExtractor(Extractor):
     def get_all_page_links(self) -> List[str]:
         """
         Lấy danh sách tất cả các trang có phim.
-
-        Returns:
-            List[str]: Danh sách link các trang.
         """
         page_links = []
 
@@ -133,3 +97,21 @@ class MotchillExtractor(Extractor):
 
         return page_links
 
+    def extract_list_films_url(self) -> List[str]:
+        """
+        Trích xuất danh sách URL của các bộ phim.
+        """
+        film_links = []
+        page_links = self.get_all_page_links()
+
+        for page_url in page_links:
+            try:
+                self.load_page(page_url)
+                film_links.extend(
+                    film.find_element(By.CSS_SELECTOR, "a").get_attribute("href")
+                    for film in self.driver.find_elements(By.CSS_SELECTOR, "li.item.no-margin-left1")
+                )
+            except WebDriverException as e:
+                logging.error("Lỗi khi tải trang %s: %s", page_url, e)
+
+        return film_links

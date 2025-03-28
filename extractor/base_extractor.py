@@ -1,14 +1,19 @@
+import logging
+import os
+import sys
 import time
 from typing import Any, Dict, List
-from selenium.webdriver.remote.webdriver import WebDriver
+
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
-from pymongo.collection import Collection
-from config import *
+from selenium.webdriver.remote.webdriver import WebDriver
+from sqlalchemy.orm import Session
+
+from config import WAIT_TIME
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from database import *
+from db.crud import create_film
+from db.models import Film
 
 
 class Extractor:
@@ -79,14 +84,14 @@ class Extractor:
         """
         self.driver.quit()
 
-    def extract_info(self) -> None:
+    def extract_info(self) -> Dict[str, Any]:
         """
         Phương thức này sẽ được ghi đè trong các lớp con để trích xuất dữ liệu cụ thể.
 
         Returns:
-            None
+            Dict[str, Any]: Dữ liệu trích xuất.
         """
-        return None
+        return {}
 
     def is_data_available(self) -> bool:
         """
@@ -103,28 +108,52 @@ class Extractor:
             time.sleep(WAIT_TIME)
             return False
 
-    def upload_database(self, col: Collection) -> None:
+    def upload_database(self, db: Session, film_data: Dict[str, Any]) -> None:
         """
         Tải dữ liệu đã trích xuất lên cơ sở dữ liệu.
 
         Args:
-            col (Collection): Bộ sưu tập MongoDB nơi lưu trữ dữ liệu.
+            db (Session): Phiên làm việc với cơ sở dữ liệu.
+            film_data (Dict[str, Any]): Dữ liệu phim cần lưu.
         """
         if not self.is_data_available():
-            time.sleep(WAIT_TIME)  # Chờ dữ liệu sẵn sàng
+            self.driver.refresh()
+            time.sleep(WAIT_TIME)
+        new_film = create_film(db, film_data)
+        print(f"Đã thêm phim: {new_film.title}")
 
-        data = self.extract_info()
-        if data:
-            save_to_database(col, data)
-
-    def extract_list_film(self) -> List[Dict[str, Any]]:
+    def extract_list_films_url(self) -> List[str]:
         """
-        Trích xuất danh sách phim từ trang web.
-
-        Args:
-            col (Collection): Bộ sưu tập MongoDB nơi lưu trữ dữ liệu.
+        Trích xuất danh sách URL của các bộ phim.
 
         Returns:
-            List[Dict[str, Any]]: Danh sách các phim trích xuất được.
+            List[str]: Danh sách URL của các bộ phim.
         """
-        return []
+        return []  # Cần triển khai trong lớp con
+
+    def extract_list_films(self, db: Session) -> List[Dict[str, Any]]:
+        """
+        Trích xuất danh sách thông tin phim từ danh sách URL.
+
+        Args:
+            db (Session): Phiên làm việc với cơ sở dữ liệu.
+
+        Returns:
+            List[Dict[str, Any]]: Danh sách thông tin các bộ phim.
+        """
+        film_links = self.extract_list_films_url()
+        film_list = []
+
+        for link_url in film_links:
+            try:
+                self.load_page(link_url)
+                film_info = self.extract_info()
+                if film_info:
+                    film = Film(**film_info)
+                    self.upload_database(db, film)
+                    film_list.append(film_info)
+            except WebDriverException as e:
+                logging.error("Lỗi Selenium khi xử lý phim %s: %s", link_url, e)
+
+        return film_list
+
