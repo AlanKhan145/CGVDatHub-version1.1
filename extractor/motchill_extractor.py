@@ -48,14 +48,15 @@ class MotchillExtractor(Extractor):
                 for genre in self.driver.find_elements(By.XPATH, "//dt[contains(text(), 'Thể loại')]/following-sibling::dd/a")
             ) or "Không có thông tin"
 
-            film_info["actors"] = ", ".join(
-                actor.text.strip()
-                for actor in self.driver.find_elements(By.XPATH, "//dt[contains(text(), 'Diễn viên')]/following-sibling::dd/a")
-            ) or "Không có thông tin"
-
             try:
-                description_element = self.driver.find_element(By.CSS_SELECTOR, "meta[name='description']")
-                film_info["description"] = description_element.get_attribute("content").strip()
+                actor_meta = self.driver.find_element(By.XPATH, "//meta[@property='video:actor']")
+                film_info["actors"] = actor_meta.get_attribute("content").strip()
+            except NoSuchElementException:
+                film_info["actors"] = "Không có thông tin"
+            try:
+                description_element = self.driver.find_element(By.XPATH,
+                                                               "//div[@class='tab']/div[@style='text-align: justify;']")
+                film_info["description"] = description_element.get_attribute("innerText").strip()
             except NoSuchElementException:
                 film_info["description"] = "Không có thông tin"
 
