@@ -1,48 +1,58 @@
-# FilmDataHub
+# Film Data Hub
 
 ## Giới thiệu
-FilmDataHub là một dự án thu thập dữ liệu từ trang web CGV, tập trung vào danh sách phim, khuyến mãi và thông tin rạp chiếu phim. Dữ liệu được crawl, trích xuất, xử lý và lưu trữ vào MongoDB để phục vụ phân tích hoặc hiển thị.
+Film Data Hub là một dự án thu thập và xử lý dữ liệu từ trang web CGV và MotChill, tập trung vào danh sách phim, khuyến mãi và thông tin rạp chiếu. Dữ liệu được crawl, trích xuất và lưu trữ vào **PostgreSQL**, sử dụng **SQLAlchemy** để tự động tạo cơ sở dữ liệu theo mô hình đối tượng.
+
+Dự án được phát triển theo hướng **lập trình hướng đối tượng (OOP)**, với **base_extractor** là lớp cơ sở cho các bộ thu thập dữ liệu.
 
 ## Chức năng chính
-- Crawl dữ liệu từ các website phim: phim, khuyến mãi, thông tin rạp.
-- Trích xuất chi tiết: thể loại, đạo diễn, ưu đãi, hotline, lịch chiếu.
-- Lưu trữ dữ liệu vào MongoDB.
+- **Crawl dữ liệu**: Thu thập thông tin về phim, khuyến mãi và rạp chiếu từ nhiều nguồn.
+- **Trích xuất chi tiết**: Gồm thể loại phim, đạo diễn, ưu đãi, hotline, lịch chiếu.
+- **Lưu trữ dữ liệu**: Lưu vào **PostgreSQL**, sử dụng **SQLAlchemy ORM** để tương tác với cơ sở dữ liệu.
 
 ## Công nghệ sử dụng
-- **Python, Jupyter Notebook**: phát triển.
-- **Selenium**: thu thập dữ liệu.
-- **MongoDB**: lưu trữ.
-- **Logging**: theo dõi lỗi.
+- **Python**
+- **Jupyter Notebook**
+- **Selenium**
+- **SQLAlchemy**
+- **Psycopg2**
+- **PostgreSQL**
 
 ## Cấu trúc dự án
 ```
-├── extractor/              # Thư mục chứa các module trích xuất dữ liệu
-│   ├── __pycache__/        # Cache của Python
-│   ├── base_extractor.py   # Lớp trích xuất cơ bản
-│   ├── cgv_extractor.py    # Trích xuất dữ liệu từ CGV
-│   ├── motchill_extractor.py # Trích xuất dữ liệu từ Motchill
-│
-├── tests/                  # Thư mục chứa các test cases
-│   ├── __pycache__/        # Cache của Python
-│   ├── test.ipynb          # Notebook kiểm thử
-│   ├── test_extract_info.py # Test trích xuất thông tin
-│   ├── test_extract_list.py # Test trích xuất danh sách
-│
-├── .gitattributes          # Cấu hình Git
-├── README.md               # Tài liệu dự án
-├── config.py               # File cấu hình
-├── database.py             # Quản lý MongoDB
-├── main.py                 # Chạy crawl dữ liệu
-├── requirements.txt        # Các thư viện cần thiết
+FilmDataHub/
+|-- db/                 # Quản lý cơ sở dữ liệu
+|   |-- __init__.py
+|   |-- crud.py         # Các thao tác CRUD với PostgreSQL
+|   |-- database.py     # Kết nối với cơ sở dữ liệu
+|   |-- models.py       # Định nghĩa mô hình dữ liệu
+|   |-- test_connections.py  # Kiểm thử kết nối cơ sở dữ liệu
+|
+|-- extractor/          # Chứa các module trích xuất dữ liệu
+|   |-- __init__.py
+|   |-- base_extractor.py       # Lớp cơ sở cho bộ thu thập dữ liệu
+|   |-- cgv_extractor.py        # Bộ thu thập dữ liệu CGV
+|   |-- motchill_extractor.py   # Bộ thu thập dữ liệu MotChill
+|
+|-- config.py           # Cấu hình dự án
+|-- main.ipynb          # File chạy chính của dự án
+|-- requirements.txt    # Danh sách các thư viện cần cài đặt
+|-- README.md           # Tài liệu hướng dẫn dự án
 ```
 
-## Cách sử dụng
-1. **Cài đặt thư viện cần thiết**
-   ```bash
+## Hướng dẫn sử dụng
+1. **Cài đặt các thư viện cần thiết**
+   ```sh
    pip install -r requirements.txt
    ```
-2. **Chạy dự án**
-     ```bash
-     python main.ipynb
+2. **Khởi tạo cơ sở dữ liệu PostgreSQL**
+   - Cấu hình thông tin kết nối trong `config.py`
+   - Chạy lệnh sau để tạo bảng trong cơ sở dữ liệu:
+     ```sh
+     python db/models.py
      ```
+3. **Chạy dự án**
+   ```sh
+   python main.ipynb
+   ```
 
